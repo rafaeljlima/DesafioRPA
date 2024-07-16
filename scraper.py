@@ -30,14 +30,28 @@ driver.maximize_window()
 fechar_popup(driver)
 search_button = driver.find_element("xpath", "//button[@class='SearchOverlay-search-button']")
 search_button.click()
-
 time.sleep(2)
 
 fechar_popup(driver)
 search_input = driver.find_element("xpath", "//label[@class='SearchOverlay-search-label']")
 search_input.send_keys("Olympic Games")
 search_input.send_keys(u'\ue007')
+time.sleep(10)
 
-time.sleep(60)
+fechar_popup(driver)
+search_button = driver.find_element("xpath", "//bsp-toggler[@class='SearchFilter-content']")
+search_button.click()
+time.sleep(1)
 
+fechar_popup(driver)
+search_button = driver.find_element("xpath", "//button[@class='SearchFilter-seeAll-button']")
+search_button.click()
+time.sleep(2)
+
+fechar_popup(driver)
+checkbox = driver.find_element("xpath", "//input[@type='checkbox' and @value='00000188-f942-d221-a78c-f9570e360000']")
+checkbox.click()
+time.sleep(2)
+
+time.sleep(120)
 fechar_popup(driver)
