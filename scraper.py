@@ -6,6 +6,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
+import pandas as pd
 
 #Definindo URL
 url = "https://www.latimes.com/"
@@ -116,9 +117,13 @@ for filho in filhos:
         descricaofilho = None
     descricoeslista.append(descricaofilho)
 
-    valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d+|\d+\sdollars|\d+\sUSD)', descricaofilho)
+    valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d*|\d+\sdollars|\d+\sUSD)', descricaofilho)
     
     if valor_monetario:
         valor_monetariolista.append(valor_monetario.group())
     else:
         valor_monetariolista.append(None)
+
+planilha = pd.DataFrame({'titulo': tituloslista, 'data': dataslista, 'descrição': descricoeslista, 'valor_monetário': valor_monetariolista})
+planilha.to_excel('planilha.xlsx', index=False)
+planilha.to_csv('planilha.csv', index=False)
