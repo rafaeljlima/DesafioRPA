@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime
 import re
@@ -47,11 +46,11 @@ input_pesquisa.send_keys(u'\uE007')
 time.sleep(8)
 
 #Expandindo os topicos
-seeall_topico = driver.find_element("xpath", "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
+seeall_topico = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button" or "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
 
 #Procurando o topico e selecionando a opção do usuário
 time.sleep(5)
-listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
+listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul' or '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
 filhos = listatopicos.find_elements(By.TAG_NAME, "li")
 
 encontroutopico = 0
@@ -75,10 +74,10 @@ dropdown.select_by_visible_text("Newest")
 time.sleep(8)
 
 #Expandindo os tipos
-seeall_tipo = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
+seeall_tipo = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button" or "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
 
 #Procurando o tipo e selecionando a opção do usuário
-listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
+listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul' or '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
 filhos = listatipo.find_elements(By.TAG_NAME, "li")
 
 encontroutipo = 0
@@ -110,8 +109,9 @@ valor_monetariolista = []
 def coletar_noticias():
     global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
+    time.sleep(5)
     #Definindo o ul e li que recebem as notícias
-    listanoticias = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/ul')
+    listanoticias = driver.find_element(By.CLASS_NAME, "search-results-module-results-menu")
     filhos = listanoticias.find_elements(By.TAG_NAME, "li")
 
     #Repetição para capturar as informaçoes das notícias
@@ -155,7 +155,7 @@ while True:
         break
 
     try:
-        botao_pagina = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/div[2]/div[3]/a")
+        botao_pagina = driver.find_element(By.CLASS_NAME, "search-results-module-next-page")
         botao_pagina.click()
         time.sleep(8)
     except:
