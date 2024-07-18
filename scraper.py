@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime
@@ -34,7 +33,6 @@ options.add_experimental_option("detach", True)
 
 #Instanciando o WebDriver
 driver = webdriver.Chrome(options=options)
-wait = WebDriverWait(driver, 10)
 
 #Acessando o site
 driver.get(url)
@@ -46,13 +44,13 @@ time.sleep(2)
 input_pesquisa = driver.find_element(By.XPATH, "/html/body/ps-header/header/div[2]/div[2]/form/label/input")
 input_pesquisa.send_keys(frase)
 input_pesquisa.send_keys(u'\uE007')
-time.sleep(2)
+time.sleep(8)
 
 #Expandindo os topicos
 seeall_topico = driver.find_element("xpath", "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
 
 #Procurando o topico e selecionando a opção do usuário
-topico_wait = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'checkbox-input-element')))
+time.sleep(5)
 listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
 filhos = listatopicos.find_elements(By.TAG_NAME, "li")
 
@@ -98,10 +96,6 @@ if (encontroutipo == 0):
     exit()
 time.sleep(8)
 
-#Definindo o ul e li que recebem as notícias
-listanoticias = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/ul')
-filhos = listanoticias.find_elements(By.TAG_NAME, "li")
-
 #Definindo a data atual
 data_atual = datetime.now()
 mes_anterior = data_atual.month - 1 if data_atual.month > 1 else 12
@@ -113,31 +107,59 @@ dataslista = []
 descricoeslista = []
 valor_monetariolista = []
 
-#Repetição para capturar as informaçoes das notícias
-for filho in filhos:
-    datafilho = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
-    datafilho_datetime = datetime.strptime(datafilho, '%B %d, %Y')
-    #Condição para verificar se a data é do mês atual ou mês passado
-    if(datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior):
-        #Inserindo dados nas listas
-        h3filho = filho.find_element(By.TAG_NAME, "h3")
-        ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
-        tituloslista.append(ahreffilho.text)
-        dataslista.append(datafilho)
+def coletar_noticias():
+    global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
-        #Inserindo descrição caso tenha
+    #Definindo o ul e li que recebem as notícias
+    listanoticias = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/ul')
+    filhos = listanoticias.find_elements(By.TAG_NAME, "li")
+
+    #Repetição para capturar as informaçoes das notícias
+    for filho in filhos:
+        datafilho = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
         try:
-            descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
-        except:
-            descricaofilho = None
-        descricoeslista.append(descricaofilho)
+            datafilho_datetime = datetime.strptime(datafilho, '%B %d, %Y')
+        except ValueError:
+            print(f"Erro ao converter a data: {datafilho}")
+            continue
 
-        #Inserindo valor monetário caso tenha
-        valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d*|\d+\sdollars|\d+\sUSD)', descricaofilho)
-        if valor_monetario:
-            valor_monetariolista.append(valor_monetario.group())
+        #Condição para verificar se a data é do mês atual ou mês passado
+        if(datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior):
+            #Inserindo dados nas listas
+            h3filho = filho.find_element(By.TAG_NAME, "h3")
+            ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
+            tituloslista.append(ahreffilho.text)
+            dataslista.append(datafilho)
+
+            #Inserindo descrição caso tenha
+            try:
+                descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
+            except:
+                descricaofilho = None
+            descricoeslista.append(descricaofilho)
+
+            #Inserindo valor monetário caso tenha
+            valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d*|\d+\sdollars|\d+\sUSD)', descricaofilho)
+            if valor_monetario:
+                valor_monetariolista.append(valor_monetario.group())
+            else:
+                valor_monetariolista.append(None)
         else:
-            valor_monetariolista.append(None)
+            return False
+    return True
+    
+#Confição para verificar se precisa continuar coletando e passar de página    
+while True:
+    continuar_coletando = coletar_noticias()
+    if not continuar_coletando:
+        break
+
+    try:
+        botao_pagina = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/div[2]/div[3]/a")
+        botao_pagina.click()
+        time.sleep(8)
+    except:
+        break
 
 #Insertando dados na planilha
 planilha = pd.DataFrame({'Titulo': tituloslista, 'Data': dataslista, 'Descrição': descricoeslista, 'Valor_monetário': valor_monetariolista})
