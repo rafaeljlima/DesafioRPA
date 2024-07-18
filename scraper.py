@@ -1,48 +1,30 @@
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import re
 
 #Definindo URL
-url = "https://apnews.com/"
+url = "https://www.latimes.com/"
 
-#Definindo a frase
+#Definindo a pesquisa
 def definir_frase():
     frase = input("Por favor, informe oque deseja pesquisar: ")
     return frase
 frase = definir_frase()
 
-#Dicionario de categorias
-categorias = {
-    "Featured Articles": "00000190-08f3-d7b0-a1fa-d9f37cb90000",
-    "Live Blogs": "00000190-0dc5-d7b0-a1fa-dde7ec030000",
-    "Photo Galleries": "0000018e-775a-d056-adcf-f75a7d350000",
-    "Sections": "00000189-9323-dce2-ad8f-bbe74c770000",
-    "Stories": "00000188-f942-d221-a78c-f9570e360000",
-    "Subsections": "00000189-9323-db0a-a7f9-9b7fb64a0000",
-    "Videos": "00000188-d597-dc35-ab8d-d7bf1ce10000"
-}
+def definir_topico():
+    topico = input("Por favor, informe o topico da pesquisa: ")
+    return topico
+topico = definir_topico()
 
-while True:
-    #Exibindo as categorias
-    print("Por favor escolha uma das seguintes categorias disponíveis:")
-    for categoria in categorias:
-        print(categoria)
-    
-    #Escolhendo a categoria
-    categoria_escolhida = input("Informe a categoria desejada: ")
-    numero_associado = categorias.get(categoria_escolhida)
-    
-    #Verificando se a categoria existe
-    if numero_associado:
-        print(f"Aguarde enquanto a categoria {categoria_escolhida} é carregada.")
-        break
-    else:
-        print("Categoria inválida. Por favor, tente novamente.")
+def definir_tipo():
+    tipo = input("Por favor, informe o tipo de resultado: ")
+    return tipo
+tipo = definir_tipo()
 
 #Configurando Selenium
 options = Options()
@@ -54,30 +36,81 @@ wait = WebDriverWait(driver, 10)
 
 #Acessando o site
 driver.get(url)
-driver.maximize_window() 
+driver.maximize_window()
 
 #Clicando no botão de pesquisa e enviando a frase
-search_button = driver.find_element(By.CLASS_NAME, 'SearchOverlay-search-button').click()
+search_button = driver.find_element(By.XPATH, "/html/body/ps-header/header/div[2]/button").click()
 time.sleep(2)
-search_input = driver.find_element(By.CLASS_NAME, 'SearchOverlay-search-label')
+search_input = driver.find_element(By.XPATH, "/html/body/ps-header/header/div[2]/div[2]/form/label/input")
 search_input.send_keys(frase)
 search_input.send_keys(u'\uE007')
 time.sleep(2)
 
-#Scroll para ver melhor os resultados
-def scroll_down():
-    driver.execute_script("window.scrollBy(0, 300);")
-for _ in range(1):
-    scroll_down()
+seeall_topics = driver.find_element("xpath", "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
 
 #Abrindo o filtro e selecionando a opção do usuário
-filter_wait = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'SearchFilter-content')))
-filter_toggle = driver.find_element(By.CLASS_NAME, "SearchFilter-content").click()
-time.sleep(1)
-seeall_button = driver.find_element(By.CLASS_NAME, "SearchFilter-seeAll-button").click()
-time.sleep(1)
-checkbox = driver.find_element("xpath", f"//input[@type='checkbox' and @value='{numero_associado}']").click()
+filter_wait = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'checkbox-input-element')))
+listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
+filhos = listatopicos.find_elements(By.TAG_NAME, "li")
 
-order_wait = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'Select-input')))
-dropdown = Select(driver.find_element("xpath", "//select[@name='s' and contains(@class, 'Select-input')]"))
+encontroutopico = 0
+for filho in filhos:
+    labelfilho = filho.find_element(By.TAG_NAME, "label")
+    inputfilho = labelfilho.find_element(By.TAG_NAME, "input")
+    spanfilho = labelfilho.find_element(By.TAG_NAME, "span")
+    if spanfilho.text == topico:
+        encontroutopico = 1
+        inputfilho.click()
+        break
+
+if (encontroutopico == 0):
+    print("nenhum topico foi encontrado")
+    exit()
+time.sleep(5)
+
+dropdown = Select(driver.find_element("xpath", "//select[@name='s' and contains(@class, 'select-input')]"))
 dropdown.select_by_visible_text("Newest")
+time.sleep(5)
+
+seeall_type = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
+time.sleep(5)
+
+listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
+filhos = listatipo.find_elements(By.TAG_NAME, "li")
+
+encontroutipo = 0
+for filho in filhos:
+    labelfilho = filho.find_element(By.TAG_NAME, "label")
+    inputfilho = labelfilho.find_element(By.TAG_NAME, "input")
+    spanfilho = labelfilho.find_element(By.TAG_NAME, "span")
+    if spanfilho.text == tipo:
+        encontroutipo = 1
+        inputfilho.click()
+        break
+
+if (encontroutipo == 0):
+    print("nenhum tipo foi encontrado")
+    exit()
+time.sleep(5)
+
+listanoticias = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/main/ul')
+filhos = listanoticias.find_elements(By.TAG_NAME, "li")
+
+tituloslista = []
+for filho in filhos:
+    h3filho = filho.find_element(By.TAG_NAME, "h3")
+    ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
+    tituloslista.append(ahreffilho.text)
+
+dataslista = []
+for filho in filhos:
+    datafilho = filho.find_element(By.CLASS_NAME, 'promo-timestamp')
+    dataslista.append(datafilho.text)
+
+descricoeslista = []
+for filho in filhos:
+    try:
+        descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
+    except:
+        descricaofilho = None
+    descricoeslista.append(descricaofilho)
