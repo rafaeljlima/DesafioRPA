@@ -108,9 +108,17 @@ for filho in filhos:
     dataslista.append(datafilho.text)
 
 descricoeslista = []
+valor_monetariolista = []
 for filho in filhos:
     try:
         descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
     except:
         descricaofilho = None
     descricoeslista.append(descricaofilho)
+
+    valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d+|\d+\sdollars|\d+\sUSD)', descricaofilho)
+    
+    if valor_monetario:
+        valor_monetariolista.append(valor_monetario.group())
+    else:
+        valor_monetariolista.append(None)
