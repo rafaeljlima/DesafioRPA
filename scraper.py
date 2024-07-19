@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime
+from dateutil import parser
 import re
 import pandas as pd
 
@@ -109,6 +110,13 @@ descricoeslista = []
 valor_monetariolista = []
 
 time.sleep(2)
+
+def converter_data(data_texto):
+    try:
+        data_datetime = parser.parse(data_texto, fuzzy=True)
+        return data_datetime
+    except (ValueError, TypeError):
+        return None
 def coletar_noticias():
     global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
@@ -118,37 +126,32 @@ def coletar_noticias():
 
     #Repetição para ler as datas das notícias
     for filho in filhos:
-        datafilho = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
-        try:
-            datafilho_datetime = datetime.strptime(datafilho, '%B %d, %Y')
-        except ValueError:
-            print(f"Erro ao converter a data: {datafilho}")
-            continue
-
-        #Condição para verificar se a data é do mês atual ou mês passado
-        if((datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or
+        datafilho_texto = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
+        datafilho_datetime = converter_data(datafilho_texto)
+        
+        if datafilho_datetime:
+            if((datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or
             (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior)):
-            #Inserindo dados nas listas
-            h3filho = filho.find_element(By.TAG_NAME, "h3")
-            ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
-            tituloslista.append(ahreffilho.text)
-            dataslista.append(datafilho)
+            
+                #Inserindo dados nas listas
+                h3filho = filho.find_element(By.TAG_NAME, "h3")
+                ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
+                tituloslista.append(ahreffilho.text)
+                dataslista.append(datafilho_texto)
 
-            #Inserindo descrição caso tenha
-            try:
-                descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
-            except:
-                descricaofilho = None
-            descricoeslista.append(descricaofilho)
+                #Inserindo descrição caso tenha
+                try:
+                    descricaofilho = filho.find_element(By.CLASS_NAME, 'promo-description').text
+                except:
+                    descricaofilho = None
+                descricoeslista.append(descricaofilho)
 
-            #Inserindo valor monetário caso tenha
-            valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d*|\d+\sdollars|\d+\sUSD)', descricaofilho)
-            if valor_monetario:
-                valor_monetariolista.append(valor_monetario.group())
-            else:
-                valor_monetariolista.append(None)
-        else:
-            return False
+                #Inserindo valor monetário caso tenha
+                valor_monetario = re.search(r'(\$\d+[\,*\d+]*\.*\d*|\d+\sdollars|\d+\sUSD)', descricaofilho)
+                if valor_monetario:
+                    valor_monetariolista.append(valor_monetario.group())
+                else:
+                    valor_monetariolista.append(None)         
     return True
     
 #Confição para verificar se precisa continuar coletando e passar de página    
