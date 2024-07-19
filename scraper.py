@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime
 import re
@@ -32,27 +34,29 @@ options.add_experimental_option("detach", True)
 
 #Instanciando o WebDriver
 driver = webdriver.Chrome(options=options)
+wait = WebDriverWait(driver, 20)
 
 #Acessando o site
 driver.get(url)
 driver.maximize_window()
 
 #Clicando no botão de pesquisa e enviando a frase
-botao_pesquisa = driver.find_element(By.XPATH, "/html/body/ps-header/header/div[2]/button").click()
-time.sleep(2)
-input_pesquisa = driver.find_element(By.XPATH, "/html/body/ps-header/header/div[2]/div[2]/form/label/input")
+botao_pesquisa = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-element='search-button']")))
+botao_pesquisa.click()
+input_pesquisa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "input[data-element='search-form-input']")))
 input_pesquisa.send_keys(frase)
 input_pesquisa.send_keys(u'\uE007')
-time.sleep(8)
 
-#Expandindo os topicos
-seeall_topico = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button" or 
-                                    "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
+seeall_topicos_existe = driver.find_elements(By.XPATH, "//ps-toggler[contains(@class, 'search-filter-see-all')]//button[contains(@class, 'button see-all-button')]")
+
+if seeall_topicos_existe:
+    seeall_topicos = wait.until(EC.element_to_be_clickable((By.XPATH, "//ps-toggler[contains(@class, 'search-filter-see-all')]//button[contains(@class, 'button see-all-button')]")))
+    seeall_topicos.click()
+else:
+    pass
 
 #Procurando o topico e selecionando a opção do usuário
-time.sleep(5)
-listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul' or 
-                                   '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
+listatopicos = driver.find_element(By.CLASS_NAME, 'search-filter-menu')
 filhos = listatopicos.find_elements(By.TAG_NAME, "li")
 
 encontroutopico = 0
@@ -68,20 +72,19 @@ for filho in filhos:
 if (encontroutopico == 0):
     print("nenhum topico foi encontrado")
     exit()
-time.sleep(8)
 
-#Selecionando noticias mais recentes
-dropdown = Select(driver.find_element(By.XPATH, "//select[@name='s' and contains(@class, 'select-input')]"))
-dropdown.select_by_visible_text("Newest")
-time.sleep(8)
+time.sleep(1)
+#Expandindo os tipos 
+seeall_tipos_existe = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//button[contains(@class, 'button see-all-button')]")))
 
-#Expandindo os tipos
-seeall_tipo = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button" or 
-                                  "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
+if seeall_tipos_existe:
+    seeall_tipos = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//button[contains(@class, 'button see-all-button')]")))
+    seeall_tipos.click()
+else:
+    pass
 
-#Procurando o tipo e selecionando a opção do usuário
-listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul' or 
-                                '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
+#Procurando o tipo e selecionando a opção do usuário 
+listatipo = wait.until(EC.visibility_of_element_located((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//ul[contains(@class, 'search-filter-menu')]")))
 filhos = listatipo.find_elements(By.TAG_NAME, "li")
 
 encontroutipo = 0
@@ -97,7 +100,11 @@ for filho in filhos:
 if (encontroutipo == 0):
     print("nenhum tipo foi encontrado")
     exit()
-time.sleep(8)
+
+time.sleep(1)
+#Selecionando noticias mais recentes
+dropdown = Select(wait.until(EC.element_to_be_clickable((By.XPATH, "//select[@name='s' and contains(@class, 'select-input')]"))))
+dropdown.select_by_visible_text("Newest")
 
 #Definindo a data atual
 data_atual = datetime.now()
@@ -110,12 +117,12 @@ dataslista = []
 descricoeslista = []
 valor_monetariolista = []
 
+time.sleep(1)
 def coletar_noticias():
     global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
-    time.sleep(5)
     #Definindo o ul e li que recebem as notícias
-    listanoticias = driver.find_element(By.CLASS_NAME, "search-results-module-results-menu")
+    listanoticias = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "search-results-module-results-menu")))
     filhos = listanoticias.find_elements(By.TAG_NAME, "li")
 
     #Repetição para ler as datas das notícias
@@ -169,3 +176,4 @@ while True:
 #Insertando dados na planilha
 planilha = pd.DataFrame({'Titulo': tituloslista, 'Data': dataslista, 'Descrição': descricoeslista, 'Valor_monetário': valor_monetariolista})
 planilha.to_excel('planilha.xlsx', index=False)
+planilha.to_csv('planilha.csv', index=False)
