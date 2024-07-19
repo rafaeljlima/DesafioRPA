@@ -47,13 +47,9 @@ input_pesquisa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "
 input_pesquisa.send_keys(frase)
 input_pesquisa.send_keys(u'\uE007')
 
-seeall_topicos_existe = driver.find_elements(By.XPATH, "//ps-toggler[contains(@class, 'search-filter-see-all')]//button[contains(@class, 'button see-all-button')]")
-
-if seeall_topicos_existe:
-    seeall_topicos = wait.until(EC.element_to_be_clickable((By.XPATH, "//ps-toggler[contains(@class, 'search-filter-see-all')]//button[contains(@class, 'button see-all-button')]")))
-    seeall_topicos.click()
-else:
-    pass
+#Expandindo os topicos
+seeall_topicos = wait.until(EC.element_to_be_clickable((By.XPATH, "//ps-toggler[contains(@class, 'search-filter-see-all')]//button[contains(@class, 'button see-all-button')]")))
+seeall_topicos.click()
 
 #Procurando o topico e selecionando a opção do usuário
 listatopicos = driver.find_element(By.CLASS_NAME, 'search-filter-menu')
@@ -73,15 +69,10 @@ if (encontroutopico == 0):
     print("nenhum topico foi encontrado")
     exit()
 
-time.sleep(1)
+time.sleep(2)
 #Expandindo os tipos 
-seeall_tipos_existe = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//button[contains(@class, 'button see-all-button')]")))
-
-if seeall_tipos_existe:
-    seeall_tipos = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//button[contains(@class, 'button see-all-button')]")))
-    seeall_tipos.click()
-else:
-    pass
+seeall_tipos = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//button[contains(@class, 'button see-all-button')]")))
+seeall_tipos.click()
 
 #Procurando o tipo e selecionando a opção do usuário 
 listatipo = wait.until(EC.visibility_of_element_located((By.XPATH, "//p[text()='Type']/ancestor::ps-toggler//ul[contains(@class, 'search-filter-menu')]")))
@@ -101,7 +92,7 @@ if (encontroutipo == 0):
     print("nenhum tipo foi encontrado")
     exit()
 
-time.sleep(1)
+time.sleep(2)
 #Selecionando noticias mais recentes
 dropdown = Select(wait.until(EC.element_to_be_clickable((By.XPATH, "//select[@name='s' and contains(@class, 'select-input')]"))))
 dropdown.select_by_visible_text("Newest")
@@ -117,7 +108,7 @@ dataslista = []
 descricoeslista = []
 valor_monetariolista = []
 
-time.sleep(1)
+time.sleep(2)
 def coletar_noticias():
     global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
@@ -169,7 +160,7 @@ while True:
     try:
         botao_pagina = driver.find_element(By.CLASS_NAME, "search-results-module-next-page")
         botao_pagina.click()
-        time.sleep(8)
+        time.sleep(5)
     except:
         break
 
