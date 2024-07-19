@@ -46,11 +46,13 @@ input_pesquisa.send_keys(u'\uE007')
 time.sleep(8)
 
 #Expandindo os topicos
-seeall_topico = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button" or "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
+seeall_topico = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button" or 
+                                    "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/button").click()
 
 #Procurando o topico e selecionando a opção do usuário
 time.sleep(5)
-listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul' or '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
+listatopicos = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul' or 
+                                   '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[1]/ps-toggler/ps-toggler/div/ul')
 filhos = listatopicos.find_elements(By.TAG_NAME, "li")
 
 encontroutopico = 0
@@ -69,15 +71,17 @@ if (encontroutopico == 0):
 time.sleep(8)
 
 #Selecionando noticias mais recentes
-dropdown = Select(driver.find_element("xpath", "//select[@name='s' and contains(@class, 'select-input')]"))
+dropdown = Select(driver.find_element(By.XPATH, "//select[@name='s' and contains(@class, 'select-input')]"))
 dropdown.select_by_visible_text("Newest")
 time.sleep(8)
 
 #Expandindo os tipos
-seeall_tipo = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button" or "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
+seeall_tipo = driver.find_element(By.XPATH, "/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button" or 
+                                  "/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/button").click()
 
 #Procurando o tipo e selecionando a opção do usuário
-listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul' or '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
+listatipo = driver.find_element(By.XPATH, '/html/body/div[2]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul' or 
+                                '/html/body/div[3]/ps-search-results-module/form/div[2]/ps-search-filters/div/aside/div/div[3]/div[2]/ps-toggler/ps-toggler/div/ul')
 filhos = listatipo.find_elements(By.TAG_NAME, "li")
 
 encontroutipo = 0
@@ -114,7 +118,7 @@ def coletar_noticias():
     listanoticias = driver.find_element(By.CLASS_NAME, "search-results-module-results-menu")
     filhos = listanoticias.find_elements(By.TAG_NAME, "li")
 
-    #Repetição para capturar as informaçoes das notícias
+    #Repetição para ler as datas das notícias
     for filho in filhos:
         datafilho = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
         try:
@@ -124,7 +128,8 @@ def coletar_noticias():
             continue
 
         #Condição para verificar se a data é do mês atual ou mês passado
-        if(datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior):
+        if((datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or
+            (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior)):
             #Inserindo dados nas listas
             h3filho = filho.find_element(By.TAG_NAME, "h3")
             ahreffilho = h3filho.find_element(By.TAG_NAME, "a")
@@ -164,4 +169,3 @@ while True:
 #Insertando dados na planilha
 planilha = pd.DataFrame({'Titulo': tituloslista, 'Data': dataslista, 'Descrição': descricoeslista, 'Valor_monetário': valor_monetariolista})
 planilha.to_excel('planilha.xlsx', index=False)
-planilha.to_csv('planilha.csv', index=False)
