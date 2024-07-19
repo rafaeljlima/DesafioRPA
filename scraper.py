@@ -92,9 +92,9 @@ for filho in filhos:
 if (encontroutipo == 0):
     print("nenhum tipo foi encontrado")
     exit()
-
 time.sleep(2)
-#Selecionando noticias mais recentes
+
+#Selecionando as noticias mais recentes
 dropdown = Select(wait.until(EC.element_to_be_clickable((By.XPATH, "//select[@name='s' and contains(@class, 'select-input')]"))))
 dropdown.select_by_visible_text("Newest")
 
@@ -111,16 +111,19 @@ valor_monetariolista = []
 
 time.sleep(2)
 
+#Definindo função para converter a data
 def converter_data(data_texto):
     try:
         data_datetime = parser.parse(data_texto, fuzzy=True)
         return data_datetime
     except (ValueError, TypeError):
         return None
+    
+#Definindo função para coletar os dados
 def coletar_noticias():
     global tituloslista, dataslista, descricoeslista, valor_monetariolista
 
-    #Definindo o ul e li que recebem as notícias
+    #Encontrando o ul e li que recebem as notícias
     listanoticias = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "search-results-module-results-menu")))
     filhos = listanoticias.find_elements(By.TAG_NAME, "li")
 
@@ -128,7 +131,8 @@ def coletar_noticias():
     for filho in filhos:
         datafilho_texto = filho.find_element(By.CLASS_NAME, 'promo-timestamp').text
         datafilho_datetime = converter_data(datafilho_texto)
-        
+
+        #Condição para verificar se a data é do mês atual ou mês passado
         if datafilho_datetime:
             if((datafilho_datetime.year == data_atual.year and datafilho_datetime.month == data_atual.month) or
             (datafilho_datetime.year == ano_mes_anterior and datafilho_datetime.month == mes_anterior)):
@@ -154,7 +158,7 @@ def coletar_noticias():
                     valor_monetariolista.append(None)         
     return True
     
-#Confição para verificar se precisa continuar coletando e passar de página    
+#Condição para verificar se precisa continuar coletando e passar de página    
 while True:
     continuar_coletando = coletar_noticias()
     if not continuar_coletando:
